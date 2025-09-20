@@ -22,21 +22,75 @@ const HomeHealthMonitor = () => {
     { time: '20:00', pm25: 12, co2: 420, voc: 0.6, healthScore: 88 },
   ]);
 
-  // Simulate real-time data updates
+  // Fetch real sensor data from backend
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSensorData(prev => ({
-        ...prev,
-        pm25: Math.max(5, prev.pm25 + (Math.random() - 0.5) * 4),
-        co2: Math.max(350, prev.co2 + (Math.random() - 0.5) * 40),
-        voc: Math.max(0.1, prev.voc + (Math.random() - 0.5) * 0.3),
-        temperature: prev.temperature + (Math.random() - 0.5) * 0.5,
-        humidity: Math.max(30, Math.min(70, prev.humidity + (Math.random() - 0.5) * 4)),
-        healthScore: Math.max(0, Math.min(100, prev.healthScore + (Math.random() - 0.5) * 3))
-      }));
-    }, 3000);
+    // Function to fetch latest sensor data
+    const fetchSensorData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/sensors/latest');
+        if (response.ok) {
+          const data = await response.json();
+          setSensorData({
+            pm25: parseFloat(data.pm25) || 0,
+            co2: parseFloat(data.co2) || 0,
+            voc: parseFloat(data.voc) || 0,
+            temperature: parseFloat(data.temperature) || 0,
+            humidity: parseFloat(data.humidity) || 0,
+            healthScore: parseInt(data.healthScore) || 0
+          });
+          setIsConnected(true);
+        } else {
+          console.log('No sensor data available');
+          setIsConnected(false);
+        }
+      } catch (error) {
+        console.error('Error fetching sensor data:', error);
+        setIsConnected(false);
+      }
+    };
 
-    return () => clearInterval(interval);
+    // Function to fetch historical data for charts
+    const fetchHistoricalData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/sensors/history');
+        if (response.ok) {
+          const data = await response.json();
+          setHistoricalData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching historical data:', error);
+      }
+    };
+
+    // Function to check connection status
+    const checkConnection = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/health');
+        if (response.ok) {
+          const data = await response.json();
+          setIsConnected(data.status === 'connected');
+        }
+      } catch (error) {
+        setIsConnected(false);
+      }
+    };
+
+    // Initial fetch
+    fetchSensorData();
+    fetchHistoricalData();
+    checkConnection();
+
+    // Set up intervals for real-time updates
+    const sensorInterval = setInterval(fetchSensorData, 5000); // Every 5 seconds
+    const historyInterval = setInterval(fetchHistoricalData, 30000); // Every 30 seconds
+    const connectionInterval = setInterval(checkConnection, 10000); // Every 10 seconds
+
+    // Cleanup intervals on component unmount
+    return () => {
+      clearInterval(sensorInterval);
+      clearInterval(historyInterval);
+      clearInterval(connectionInterval);
+    };
   }, []);
 
   const getHealthStatus = (score) => {

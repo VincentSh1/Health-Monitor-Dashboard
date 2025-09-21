@@ -24,8 +24,8 @@ const udpServer = dgram.createSocket('udp4');
 // This is where you RECEIVE UDP data from external hardware/software
 udpServer.on('message', (message, remote) => {
   try {
-    console.log(`📡 UDP data RECEIVED from ${remote.address}:${remote.port}`);
-    console.log('📦 Raw message:', message.toString());
+    console.log(`UDP data RECEIVED from ${remote.address}:${remote.port}`);
+    console.log('Raw message:', message.toString());
     
     // Add the sender to our connected devices list
     connectedDevices.add(remote.address);
@@ -36,7 +36,7 @@ udpServer.on('message', (message, remote) => {
       data = JSON.parse(message.toString());
     } catch (parseError) {
       // If not JSON, try to parse other formats
-      console.log('⚠️  Message is not JSON, attempting other parsing...');
+      console.log('Message is not JSON, attempting other parsing...');
       data = parseCustomFormat(message.toString());
     }
     
@@ -69,7 +69,7 @@ udpServer.on('message', (message, remote) => {
       sensorReadings = sensorReadings.slice(-100);
     }
     
-    console.log('✅ Processed sensor data:', {
+    console.log('Processed sensor data:', {
       pm25: reading.pm25,
       co2: reading.co2,
       healthScore: reading.healthScore,
@@ -85,15 +85,15 @@ udpServer.on('message', (message, remote) => {
     
     udpServer.send(ackMessage, remote.port, remote.address, (error) => {
       if (error) {
-        console.error('❌ Error sending UDP acknowledgment:', error);
+        console.error('Error sending UDP acknowledgment:', error);
       } else {
-        console.log('📤 Acknowledgment sent to hardware');
+        console.log('Acknowledgment sent to hardware');
       }
     });
     
   } catch (error) {
-    console.error('❌ Error processing UDP message:', error);
-    console.error('📦 Message content:', message.toString());
+    console.error('Error processing UDP message:', error);
+    console.error('Message content:', message.toString());
   }
 });
 
@@ -121,14 +121,14 @@ function parseCustomFormat(messageString) {
 // Handle UDP socket events
 udpServer.on('listening', () => {
   const address = udpServer.address();
-  console.log(`🚀 UDP Server LISTENING for hardware data on ${address.address}:${address.port}`);
-  console.log(`📡 Hardware should send UDP data to: ${getLocalIPAddress()}:${address.port}`);
+  console.log(`UDP Server LISTENING for hardware data on ${address.address}:${address.port}`);
+  console.log(`Hardware should send UDP data to: ${getLocalIPAddress()}:${address.port}`);
 });
 
 udpServer.on('error', (error) => {
-  console.error('❌ UDP Server error:', error);
+  console.error('UDP Server error:', error);
   if (error.code === 'EADDRINUSE') {
-    console.log(`⚠️  Port ${UDP_PORT} is already in use. Try a different port.`);
+    console.log(`Port ${UDP_PORT} is already in use. Try a different port.`);
   }
 });
 
@@ -249,16 +249,16 @@ app.get('/api/debug', (req, res) => {
 
 // Start HTTP server
 app.listen(HTTP_PORT, () => {
-  console.log('\n🚀 HEALTH MONITOR UDP RECEIVER STARTED');
+  console.log('\nHEALTH MONITOR UDP RECEIVER STARTED');
   console.log('=======================================');
-  console.log(`📊 Dashboard: http://localhost:${HTTP_PORT}`);
-  console.log(`📡 UDP Receiver: ${getLocalIPAddress()}:${UDP_PORT}`);
-  console.log(`🔍 Test endpoint: http://localhost:${HTTP_PORT}/api/test`);
-  console.log('\n📝 INSTRUCTIONS FOR HARDWARE SENDER:');
+  console.log(`Dashboard: http://localhost:${HTTP_PORT}`);
+  console.log(`UDP Receiver: ${getLocalIPAddress()}:${UDP_PORT}`);
+  console.log(`Test endpoint: http://localhost:${HTTP_PORT}/api/test`);
+  console.log('\nINSTRUCTIONS FOR HARDWARE SENDER:');
   console.log(`   • Send UDP packets to: ${getLocalIPAddress()}:${UDP_PORT}`);
   console.log(`   • JSON format: {"pm25":15.2,"co2":420,"temperature":22.5,...}`);
   console.log(`   • Or custom format: "PM25:15.2,CO2:420,TEMP:22.5"`);
-  console.log('\n⏳ Waiting for UDP data from hardware...\n');
+  console.log('\nWaiting for UDP data from hardware...\n');
 });
 
 // Graceful shutdown

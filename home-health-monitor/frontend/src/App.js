@@ -396,7 +396,6 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'fitbit', label: 'Fitbit Health', icon: Watch },
     { id: 'history', label: 'History', icon: History },
-    { id: 'notifications', label: 'Alerts', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 

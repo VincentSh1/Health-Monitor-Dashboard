@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Thermometer, Wind, Droplets, Activity, AlertTriangle, CheckCircle, Wifi, LayoutDashboard, User, LogOut, Settings, Database, Bell, History, Menu, X, Eye, EyeOff, Heart, Watch } from 'lucide-react';
+import { Thermometer, Wind, Droplets, Activity, AlertTriangle, CheckCircle, Wifi, LayoutDashboard, User, LogOut, Bell, History, Menu, X, Eye, EyeOff, Heart, Watch } from 'lucide-react';
 
 const LoginPage = ({ onLogin }) => {
   const [formData, setFormData] = useState({

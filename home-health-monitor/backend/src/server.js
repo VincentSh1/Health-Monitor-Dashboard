@@ -33,20 +33,23 @@ udpServer.on('message', (message, remote) => {
     // Parse the UDP message (adjust format based on what your hardware sends)
     let data;
     try {
+      // First try JSON parsing
       data = JSON.parse(message.toString());
+      console.log('📦 Parsed as JSON');
     } catch (parseError) {
       // If not JSON, try to parse other formats
       console.log('Message is not JSON, attempting other parsing...');
       data = parseCustomFormat(message.toString());
     }
     
-    // Validate and process sensor data
+    // Validate and process sensor data with your specific field names
     const reading = {
       pm25: parseFloat(data.pm25) || parseFloat(data.PM25) || 0,
       co2: parseFloat(data.co2) || parseFloat(data.CO2) || 0,
-      voc: parseFloat(data.voc) || parseFloat(data.VOC) || 0,
+      voc: parseFloat(data.adc) || parseFloat(data.VOC) || 0,
       temperature: parseFloat(data.temperature) || parseFloat(data.temp) || 0,
       humidity: parseFloat(data.humidity) || parseFloat(data.humid) || 0,
+      adc: parseFloat(data.adc) || 0, // Store ADC reading too
       healthScore: 0, // Will calculate below
       timestamp: new Date().toISOString(),
       id: Date.now(),
@@ -97,22 +100,78 @@ udpServer.on('message', (message, remote) => {
   }
 });
 
-// Function to parse custom data formats (modify based on your hardware format)
+// Function to parse your specific hardware format
 function parseCustomFormat(messageString) {
-  // Example: If your hardware sends "PM25:15.2,CO2:420,TEMP:22.5"
+  // Your format: "adc reading: 20, co2: (ppm) 12, temp: 28.283386, humidity: 54.251099"
   const data = {};
   
+  console.log('🔧 Parsing custom hardware format:', messageString);
+  
   try {
-    // Split by comma and then by colon
-    const pairs = messageString.split(',');
-    pairs.forEach(pair => {
-      const [key, value] = pair.split(':');
-      if (key && value) {
-        data[key.toLowerCase().trim()] = parseFloat(value.trim());
+    // Split by comma to get individual parts
+    const parts = messageString.split(',');
+    
+    parts.forEach(part => {
+      const trimmed = part.trim();
+      
+      // Handle different patterns
+      if (trimmed.includes('adc reading:')) {
+        // Extract: "adc reading: 20" -> 20
+        const match = trimmed.match(/adc reading:\s*(\d+\.?\d*)/);
+        if (match) {
+          data.adc = parseFloat(match[1]);
+          console.log('  ADC:', data.adc);
+        }
+      }
+      else if (trimmed.includes('co2:')) {
+        // Extract: "co2: (ppm) 12" -> 12
+        const match = trimmed.match(/co2:\s*\(ppm\)\s*(\d+\.?\d*)/);
+        if (match) {
+          data.co2 = parseFloat(match[1]);
+          console.log('   CO2:', data.co2, 'ppm');
+        }
+      }
+      else if (trimmed.includes('temp:')) {
+        // Extract: "temp: 28.283386" -> 28.283386
+        const match = trimmed.match(/temp:\s*(\d+\.?\d*)/);
+        if (match) {
+          data.temperature = parseFloat(match[1]);
+          console.log('  Temperature:', data.temperature, '°C');
+        }
+      }
+      else if (trimmed.includes('humidity:')) {
+        // Extract: "humidity: 54.251099" -> 54.251099
+        const match = trimmed.match(/humidity:\s*(\d+\.?\d*)/);
+        if (match) {
+          data.humidity = parseFloat(match[1]);
+          console.log('  Humidity:', data.humidity, '%');
+        }
       }
     });
+    
+    // Set default values for missing sensors (you might not have PM2.5 or VOC)
+    if (!data.pm25) {
+      data.pm25 = 0; // Default if no PM2.5 sensor
+      console.log('  PM2.5: Using default value (0) - no sensor data');
+    }
+    if (!data.voc) {
+      data.voc = 0; // Default if no VOC sensor  
+      console.log('  VOC: Using default value (0) - no sensor data');
+    }
+    
+    console.log('  Parsed data:', data);
+    
   } catch (error) {
-    console.log('Could not parse custom format, using defaults');
+    console.error('Error parsing custom format:', error);
+    // Return defaults if parsing fails
+    return {
+      adc: 0,
+      co2: 0,
+      temperature: 0,
+      humidity: 0,
+      pm25: 0,
+      voc: 0
+    };
   }
   
   return data;
@@ -153,24 +212,65 @@ udpServer.bind(UDP_PORT, UDP_HOST);
 
 // Health score calculation function
 function calculateHealthScore(data) {
-  let score = 100;
+  let score = 100; // Start with perfect score
   
-  // Deduct points based on air quality
-  if (data.pm25 > 12) score -= (data.pm25 - 12) * 2;
-  if (data.co2 > 400) score -= (data.co2 - 400) / 10;
-  if (data.voc > 1.0) score -= (data.voc - 1.0) * 20;
+  console.log('🧮 Calculating health score for:', {
+    pm25: data.pm25,
+    co2: data.co2,
+    voc: data.voc,
+    temperature: data.temperature,
+    humidity: data.humidity
+  });
   
-  // Temperature comfort zone (20-26°C)
+  // PM2.5 Air Quality Impact (Fine Particulate Matter)
+  // WHO guideline: 15 μg/m³ annual, 45 μg/m³ 24-hour
+  // Good: 0-12, Moderate: 12.1-35.4, Unhealthy: 35.5+
+  if (data.pm25 > 12) {
+    const pm25Penalty = (data.pm25 - 12) * 2; // 2 points per μg/m³ over 12
+    score -= pm25Penalty;
+    console.log(`  PM2.5 penalty: -${pm25Penalty.toFixed(1)} (level: ${data.pm25})`);
+  }
+  
+  // CO2 Impact (Carbon Dioxide - Indoor Air Quality)
+  // Good: 350-800ppm, Acceptable: 800-1500ppm, Poor: 1500+ppm
+  if (data.co2 > 800) {
+    const co2Penalty = (data.co2 - 600) / 10; // 1 point per 10ppm over 400
+    score -= co2Penalty;
+    console.log(`  CO2 penalty: -${co2Penalty.toFixed(1)} (level: ${data.co2}ppm)`);
+  }
+  
+  // VOC Impact (Volatile Organic Compounds)
+  // Good: 0-1.0, Moderate: 1.0-3.0, Poor: 3.0+
+  if (data.voc > 50.0) {
+    const vocPenalty = (data.voc - 1.0); // 20 points per unit over 1.0
+    score -= vocPenalty;
+    console.log(`  VOC penalty: -${vocPenalty.toFixed(1)} (level: ${data.voc})`);
+  }
+  
+  // Temperature Comfort Zone (Human Comfort)
+  // Optimal: 20-26°C (68-78°F)
+  const optimalTemp = 23; // 23°C is ideal
   if (data.temperature < 20 || data.temperature > 26) {
-    score -= Math.abs(data.temperature - 23) * 3;
+    const tempPenalty = Math.abs(data.temperature - optimalTemp) * 3; // 3 points per degree from optimal
+    score -= tempPenalty;
+    console.log(`  Temperature penalty: -${tempPenalty.toFixed(1)} (${data.temperature}°C, optimal: ${optimalTemp}°C)`);
   }
   
-  // Humidity comfort zone (40-60%)
+  // Humidity Comfort Zone (Human Comfort & Health)
+  // Optimal: 40-60% (prevents mold growth and respiratory issues)
+  const optimalHumidity = 50; // 50% is ideal
   if (data.humidity < 40 || data.humidity > 60) {
-    score -= Math.abs(data.humidity - 50) / 2;
+    const humidityPenalty = Math.abs(data.humidity - optimalHumidity) / 2; // 0.5 points per % from optimal range
+    score -= humidityPenalty;
+    console.log(`  Humidity penalty: -${humidityPenalty.toFixed(1)} (${data.humidity}%, optimal: 40-60%)`);
   }
   
-  return Math.max(0, Math.min(100, Math.round(score)));
+  // Ensure score stays within 0-100 range
+  const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+  
+  console.log(`  Final Health Score: ${finalScore}/100`);
+  
+  return finalScore;
 }
 
 // REST API Endpoints (same as before, but now fed by UDP data)
@@ -250,7 +350,12 @@ app.get('/api/debug', (req, res) => {
 // Start HTTP server
 app.listen(HTTP_PORT, () => {
   console.log('\nHEALTH MONITOR UDP RECEIVER STARTED');
+  console.log('\nHEALTH MONITOR UDP RECEIVER STARTED');
   console.log('=======================================');
+  console.log(`Dashboard: http://localhost:${HTTP_PORT}`);
+  console.log(`UDP Receiver: ${getLocalIPAddress()}:${UDP_PORT}`);
+  console.log(`Test endpoint: http://localhost:${HTTP_PORT}/api/test`);
+  console.log('\nINSTRUCTIONS FOR HARDWARE SENDER:');
   console.log(`Dashboard: http://localhost:${HTTP_PORT}`);
   console.log(`UDP Receiver: ${getLocalIPAddress()}:${UDP_PORT}`);
   console.log(`Test endpoint: http://localhost:${HTTP_PORT}/api/test`);
@@ -258,6 +363,7 @@ app.listen(HTTP_PORT, () => {
   console.log(`   • Send UDP packets to: ${getLocalIPAddress()}:${UDP_PORT}`);
   console.log(`   • JSON format: {"pm25":15.2,"co2":420,"temperature":22.5,...}`);
   console.log(`   • Or custom format: "PM25:15.2,CO2:420,TEMP:22.5"`);
+  console.log('\nWaiting for UDP data from hardware...\n');
   console.log('\nWaiting for UDP data from hardware...\n');
 });
 

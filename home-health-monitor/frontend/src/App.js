@@ -972,29 +972,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
                 unit="%"
                 description="Relative humidity level"
               />
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => setActiveSection('fitbit')}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    View Fitbit Data
-                  </button>
-                  <button 
-                    onClick={() => setActiveSection('data')}
-                    className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Export Data
-                  </button>
-                  <button 
-                    onClick={() => setActiveSection('settings')}
-                    className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Settings
-                  </button>
-                </div>
-              </div>
+              
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

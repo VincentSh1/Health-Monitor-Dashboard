@@ -219,9 +219,9 @@ const App = () => {
   return <HomeHealthMonitor user={user} onLogout={handleLogout} />;
 };
 
-const HomeHealthMonitor = ({onLogout }) => {
+const HomeHealthMonitor = ({ user, onLogout }) => {
   const [sensorData, setSensorData] = useState({
-    pm25: 300,
+    pm25: 12,
     co2: 420,
     voc: 0.8,
     temperature: 22.5,
@@ -232,14 +232,13 @@ const HomeHealthMonitor = ({onLogout }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user] = useState({ name: 'Vincent Shi', email: 'vincent@healthmonitor.com' });
   const [historicalData, setHistoricalData] = useState([
     { time: '00:00', pm25: 15, co2: 450, voc: 0.9, healthScore: 78 },
-    { time: '04:00', pm25: 55, co2: 420, voc: 0.7, healthScore: 85 },
+    { time: '04:00', pm25: 12, co2: 420, voc: 0.7, healthScore: 85 },
     { time: '08:00', pm25: 18, co2: 480, voc: 1.2, healthScore: 72 },
-    { time: '12:00', pm25: 70, co2: 520, voc: 1.5, healthScore: 68 },
-    { time: '16:00', pm25: 134, co2: 440, voc: 0.8, healthScore: 82 },
-    { time: '20:00', pm25: 333, co2: 420, voc: 0.6, healthScore: 88 },
+    { time: '12:00', pm25: 22, co2: 520, voc: 1.5, healthScore: 68 },
+    { time: '16:00', pm25: 14, co2: 440, voc: 0.8, healthScore: 82 },
+    { time: '20:00', pm25: 12, co2: 420, voc: 0.6, healthScore: 88 },
   ]);
 
   // Fetch real sensor data from backend
@@ -317,14 +316,10 @@ const HomeHealthMonitor = ({onLogout }) => {
   };
 
   const getAirQualityLevel = (pm25) => {
-    if (pm25 <= 9) return { level: 'Good', color: 'text-green-500' };
+    if (pm25 <= 12) return { level: 'Good', color: 'text-green-500' };
     if (pm25 <= 35) return { level: 'Moderate', color: 'text-yellow-500' };
-    if (pm25 <= 55) return { level: 'Unhealthy for Sensible Groups', color: 'text-orange-500' };
-    if (pm25 <= 125) return { level: 'Unhealthy', color: 'text-red-500' };
-    if (pm25 <= 255) return { level: 'Very Unhealthy', color: 'text-purple-500' };
-
-
-    return { level: 'Hazardous'};
+    if (pm25 <= 55) return { level: 'Unhealthy', color: 'text-orange-500' };
+    return { level: 'Hazardous', color: 'text-red-500' };
   };
 
   const healthStatus = getHealthStatus(sensorData.healthScore);
@@ -342,10 +337,6 @@ const HomeHealthMonitor = ({onLogout }) => {
   const handleSidebarClick = (sectionId) => {
     setActiveSection(sectionId);
     setSidebarOpen(false);
-  };
-
-  const handleSignOut = () => {
-    alert('Sign out functionality - integrate with your auth system');
   };
 
   const SidebarItem = ({ item, isActive, onClick }) => {

@@ -403,8 +403,6 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'fitbit', label: 'Fitbit Health', icon: Watch },
     { id: 'history', label: 'History', icon: History },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'data', label: 'Data Export', icon: Database },
     { id: 'notifications', label: 'Alerts', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -553,45 +551,8 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     </div>
   );
 
-  const SettingsSection = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Update Frequency</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>Every 5 seconds</option>
-                <option>Every 10 seconds</option>
-                <option>Every 30 seconds</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
-  const DataExportSection = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Data Export</h2>
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <p className="text-gray-600 mb-6">Export your sensor data for analysis.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors">
-            <Database className="h-6 w-6 mx-auto mb-2" />
-            Export CSV
-          </button>
-          <button className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors">
-            <Database className="h-6 w-6 mx-auto mb-2" />
-            Export JSON
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+ 
 
   const FitbitSection = () => {
     if (!fitbitConnected && !showFitbitDemo) {
@@ -872,10 +833,6 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     switch (activeSection) {
       case 'profile':
         return <ProfileSection />;
-      case 'settings':
-        return <SettingsSection />;
-      case 'data':
-        return <DataExportSection />;
       case 'fitbit':
         return <FitbitSection />;
       case 'history':

@@ -479,7 +479,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
           </div>
           
           <button
-            onClick={handleSignOut}
+            onClick={onLogout}
             className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
           >
             <LogOut className="h-4 w-4" />
@@ -1094,4 +1094,4 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
   );
 };
 
-export default HomeHealthMonitor;
+export default App;

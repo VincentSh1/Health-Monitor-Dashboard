@@ -303,10 +303,19 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     };
   };
 
+
   const handleFitbitConnect = () => {
-    // In a real implementation, this would redirect to Fitbit OAuth
-    // For now, we'll simulate a connection
-    alert('In a real app, this would redirect to Fitbit OAuth. For demo purposes, use the Demo button instead.');
+    const clientId = process.env.REACT_APP_FITBIT_CLIENT_ID;
+    const redirectUri = process.env.REACT_APP_FITBIT_REDIRECT_URI;
+    const scope = 'activity heartrate sleep profile';
+  
+    const authUrl = `https://www.fitbit.com/oauth2/authorize?` +
+      `response_type=code&` +
+      `client_id=${clientId}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scope)}`;
+    
+    window.location.href = authUrl;
   };
 
   const handleFitbitDemo = () => {

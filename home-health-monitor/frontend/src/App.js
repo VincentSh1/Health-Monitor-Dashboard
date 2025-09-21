@@ -143,15 +143,7 @@ const LoginPage = ({ onLogin }) => {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500" />
-                <span className="text-sm text-blue-200">Remember me</span>
-              </label>
-              <button type="button" className="text-sm text-blue-300 hover:text-white transition-colors">
-                Forgot password?
-              </button>
-            </div>
+
 
             <button
               type="submit"
@@ -179,15 +171,7 @@ const LoginPage = ({ onLogin }) => {
             </button>
           </div>
 
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-blue-200 text-sm">
-              Don't have an account?{' '}
-              <button className="text-blue-300 hover:text-white font-medium transition-colors">
-                Sign up
-              </button>
-            </p>
-          </div>
+          
         </div>
 
         {/* Floating Elements */}
@@ -539,6 +523,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
             <input 
               type="text" 
               defaultValue={user.name}
+              readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -547,15 +532,12 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
             <input 
               type="email" 
               defaultValue={user.email}
+              readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
-        <div className="mt-6">
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Save Changes
-          </button>
-        </div>
+        
       </div>
     </div>
   );

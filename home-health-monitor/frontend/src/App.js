@@ -986,7 +986,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
           <div className="hidden lg:flex items-center justify-between mb-8">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                {activeSection === 'dashboard' ? 'Home Health Monitor' : 
+                {activeSection === 'dashboard' ? 'Envirolytics - Home Health Monitor' : 
                  sidebarItems.find(item => item.id === activeSection)?.label}
               </h1>
               <p className="text-gray-600">

@@ -3,16 +3,13 @@ const cors = require('cors');
 const app = express();
 const PORT = 3001;
 
-// Middleware
-app.use(cors()); // Allow React app to connect
-app.use(express.json()); // Parse JSON data
+app.use(cors()); 
+app.use(express.json()); 
 
-// In-memory storage (for development)
-// In production, you'd use a real database like MongoDB or PostgreSQL
+
 let sensorReadings = [];
 let latestReading = null;
 
-// Store sensor data from Arduino
 app.post('/api/sensors', (req, res) => {
   console.log('Received sensor data:', req.body);
   
@@ -22,11 +19,9 @@ app.post('/api/sensors', (req, res) => {
     id: Date.now()
   };
   
-  // Store the reading
   sensorReadings.push(reading);
   latestReading = reading;
   
-  // Keep only last 100 readings to prevent memory issues
   if (sensorReadings.length > 100) {
     sensorReadings = sensorReadings.slice(-100);
   }
@@ -34,7 +29,6 @@ app.post('/api/sensors', (req, res) => {
   res.json({ success: true, message: 'Data received successfully' });
 });
 
-// Get latest sensor data (for React app)
 app.get('/api/sensors/latest', (req, res) => {
   if (latestReading) {
     res.json(latestReading);
@@ -43,12 +37,9 @@ app.get('/api/sensors/latest', (req, res) => {
   }
 });
 
-// Get historical data (for charts)
 app.get('/api/sensors/history', (req, res) => {
-  // Return last 24 readings (for 4-hour history if reading every 10 min)
   const recentReadings = sensorReadings.slice(-24);
   
-  // Format for chart display
   const chartData = recentReadings.map((reading, index) => ({
     time: new Date(reading.timestamp).toLocaleTimeString('en-US', { 
       hour12: false, 
@@ -66,7 +57,6 @@ app.get('/api/sensors/history', (req, res) => {
   res.json(chartData);
 });
 
-// Health endpoint (check if Arduino is sending data)
 app.get('/api/health', (req, res) => {
   const now = new Date();
   const lastReading = latestReading ? new Date(latestReading.timestamp) : null;
@@ -78,7 +68,6 @@ app.get('/api/health', (req, res) => {
   }
 });
 
-// Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Backend server is running!',
@@ -87,20 +76,17 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Serve static files (if you build your React app)
 app.use(express.static('build'));
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
   console.log(`Test it: http://localhost:${PORT}/api/test`);
   console.log(`Arduino should POST to: http://localhost:${PORT}/api/sensors`);
 });
 
-// For development: Add some fake data every 30 seconds if no real data
 if (process.env.NODE_ENV !== 'production') {
   setInterval(() => {
-    if (!latestReading || (Date.now() - new Date(latestReading.timestamp).getTime()) > 80000) {
+    if (!latestReading || (Date.now() - new Date(latestReading.timestamp).getTime()) > 50000) {
       console.log('Adding fake data for testing...');
       
       const fakeReading = {

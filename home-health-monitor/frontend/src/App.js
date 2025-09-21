@@ -1,8 +1,225 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Thermometer, Wind, Droplets, Activity, AlertTriangle, CheckCircle, Wifi } from 'lucide-react';
+import { Thermometer, Wind, Droplets, Activity, AlertTriangle, CheckCircle, Wifi, LayoutDashboard, User, LogOut, Settings, Database, Bell, History, Menu, X, Eye, EyeOff } from 'lucide-react';
 
-const HomeHealthMonitor = () => {
+const LoginPage = ({ onLogin }) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // For demo purposes, accept any valid email/password combination
+      const userData = {
+        name: 'Vincent Shi',
+        email: formData.email,
+        id: '123'
+      };
+      onLogin(userData);
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleDemoLogin = () => {
+    const demoUser = {
+      name: 'Vincent Shi',
+      email: 'vincent@healthmonitor.com',
+      id: 'demo123'
+    };
+    onLogin(demoUser);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+      
+      <div className="relative w-full max-w-md">
+        {/* Login Card */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Activity className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+            <p className="text-blue-200">Sign in to your Health Monitor</p>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-blue-200 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 bg-white/10 border ${
+                  errors.email ? 'border-red-400' : 'border-white/30'
+                } rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200`}
+                placeholder="Enter your email"
+              />
+              {errors.email && (
+                <p className="mt-2 text-sm text-red-400">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-200 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 pr-12 bg-white/10 border ${
+                    errors.password ? 'border-red-400' : 'border-white/30'
+                  } rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200`}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-400">{errors.password}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" className="rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500" />
+                <span className="text-sm text-blue-200">Remember me</span>
+              </label>
+              <button type="button" className="text-sm text-blue-300 hover:text-white transition-colors">
+                Forgot password?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          {/* Demo Login */}
+          <div className="mt-6 pt-6 border-t border-white/20">
+            <button
+              onClick={handleDemoLogin}
+              className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-6 rounded-xl border border-white/30 transition-all duration-200 hover:border-white/50"
+            >
+              Try Demo Login
+            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-blue-200 text-sm">
+              Don't have an account?{' '}
+              <button className="text-blue-300 hover:text-white font-medium transition-colors">
+                Sign up
+              </button>
+            </p>
+          </div>
+        </div>
+
+        {/* Floating Elements */}
+        <div className="absolute -top-4 -left-4 w-20 h-20 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
+        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-xl"></div>
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  return <HomeHealthMonitor user={user} onLogout={handleLogout} />;
+};
+
+const HomeHealthMonitor = ({ user, onLogout }) => {
   const [sensorData, setSensorData] = useState({
     pm25: 12,
     co2: 420,
@@ -13,6 +230,8 @@ const HomeHealthMonitor = () => {
   });
 
   const [isConnected, setIsConnected] = useState(true);
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState([
     { time: '00:00', pm25: 15, co2: 450, voc: 0.9, healthScore: 78 },
     { time: '04:00', pm25: 12, co2: 420, voc: 0.7, healthScore: 85 },
@@ -109,6 +328,96 @@ const HomeHealthMonitor = () => {
 
   const healthStatus = getHealthStatus(sensorData.healthScore);
   const airQuality = getAirQualityLevel(sensorData.pm25);
+
+  const sidebarItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'history', label: 'History', icon: History },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'data', label: 'Data Export', icon: Database },
+    { id: 'notifications', label: 'Alerts', icon: Bell },
+    { id: 'profile', label: 'Profile', icon: User },
+  ];
+
+  const handleSidebarClick = (sectionId) => {
+    setActiveSection(sectionId);
+    setSidebarOpen(false);
+  };
+
+  const SidebarItem = ({ item, isActive, onClick }) => {
+    const Icon = item.icon;
+    return (
+      <button
+        onClick={() => onClick(item.id)}
+        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+          isActive 
+            ? 'bg-blue-600 text-white shadow-lg' 
+            : 'text-gray-300 hover:text-white hover:bg-gray-700'
+        }`}
+      >
+        <Icon className="h-5 w-5" />
+        <span className="font-medium">{item.label}</span>
+      </button>
+    );
+  };
+
+  const Sidebar = () => (
+    <div className={`fixed left-0 top-0 h-screen w-64 transform transition-transform duration-300 ease-in-out z-50 ${
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+    } lg:translate-x-0 p-4`}>
+      <div className="flex flex-col h-full bg-gray-800 rounded-2xl shadow-xl">
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-white font-bold text-lg">Health Monitor</h1>
+              <p className="text-gray-400 text-sm">Dashboard</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          {sidebarItems.map((item) => (
+            <SidebarItem 
+              key={item.id} 
+              item={item} 
+              isActive={activeSection === item.id}
+              onClick={handleSidebarClick}
+            />
+          ))}
+        </div>
+
+        <div className="p-4 border-t border-gray-700 mt-auto">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">
+                {user.name.split(' ').map(n => n[0]).join('')}
+              </span>
+            </div>
+            <div className="flex-1">
+              <p className="text-white text-sm font-medium">{user.name}</p>
+              <p className="text-gray-400 text-xs">{user.email}</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="text-sm font-medium">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const SensorCard = ({ icon: Icon, title, value, unit, status, description }) => (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow">
@@ -294,4 +603,4 @@ const HomeHealthMonitor = () => {
   );
 };
 
-export default HomeHealthMonitor;
+export default App;

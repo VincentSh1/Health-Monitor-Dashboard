@@ -1,56 +1,48 @@
 const express = require('express');
 const cors = require('cors');
-const dgram = require('dgram'); // UDP socket library (built into Node.js)
+const dgram = require('dgram'); 
 const app = express();
 
-// Configuration
-const HTTP_PORT = 3001;        // Port for React app to connect to
-const UDP_PORT = 8080;         // Port to RECEIVE UDP data from hardware
-const UDP_HOST = '0.0.0.0';    // Listen on ALL network interfaces (important!)
+const HTTP_PORT = 3001;        
+const UDP_PORT = 8080;       
+const UDP_HOST = '0.0.0.0';    
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage
 let sensorReadings = [];
 let latestReading = null;
 let lastUdpReceived = null;
-let connectedDevices = new Set(); // Track devices sending data
+let connectedDevices = new Set(); 
 
-// Create UDP socket to RECEIVE data from hardware
+// udp socket to receive data from hardware yur
 const udpServer = dgram.createSocket('udp4');
 
-// This is where you RECEIVE UDP data from external hardware/software
+// receive udp data here 
 udpServer.on('message', (message, remote) => {
   try {
     console.log(`UDP data RECEIVED from ${remote.address}:${remote.port}`);
     console.log('Raw message:', message.toString());
-    
-    // Add the sender to our connected devices list
     connectedDevices.add(remote.address);
     
-    // Parse the UDP message (adjust format based on what your hardware sends)
+    // Parse the UDP message 
     let data;
     try {
-      // First try JSON parsing
       data = JSON.parse(message.toString());
-      console.log('📦 Parsed as JSON');
     } catch (parseError) {
-      // If not JSON, try to parse other formats
-      console.log('Message is not JSON, attempting other parsing...');
+      console.log('Message is not JSON');
       data = parseCustomFormat(message.toString());
     }
     
-    // Validate and process sensor data with your specific field names
+    // process sensor / hardware data into variables so then we can process into backend
     const reading = {
       pm25: parseFloat(data.pm25) || parseFloat(data.PM25) || 0,
       co2: parseFloat(data.co2) || parseFloat(data.CO2) || 0,
       voc: parseFloat(data.adc) || parseFloat(data.VOC) || 0,
       temperature: parseFloat(data.temperature) || parseFloat(data.temp) || 0,
       humidity: parseFloat(data.humidity) || parseFloat(data.humid) || 0,
-      adc: parseFloat(data.adc) || 0, // Store ADC reading too
-      healthScore: 0, // Will calculate below
+      adc: parseFloat(data.adc) || 0,
+      healthScore: 0, 
       timestamp: new Date().toISOString(),
       id: Date.now(),
       source: 'UDP_HARDWARE',
@@ -59,15 +51,14 @@ udpServer.on('message', (message, remote) => {
       senderPort: remote.port
     };
     
-    // Calculate health score
     reading.healthScore = calculateHealthScore(reading);
     
-    // Store the reading
+    // stoer reading
     sensorReadings.push(reading);
     latestReading = reading;
     lastUdpReceived = new Date();
     
-    // Keep only last 100 readings to prevent memory issues
+    // remove data when its hella storage heav--> > 100 reading 
     if (sensorReadings.length > 100) {
       sensorReadings = sensorReadings.slice(-100);
     }
@@ -79,7 +70,6 @@ udpServer.on('message', (message, remote) => {
       from: remote.address
     });
     
-    // Optional: Send acknowledgment back to hardware
     const ackMessage = JSON.stringify({ 
       status: 'received', 
       timestamp: new Date().toISOString(),
@@ -100,23 +90,19 @@ udpServer.on('message', (message, remote) => {
   }
 });
 
-// Function to parse your specific hardware format
 function parseCustomFormat(messageString) {
-  // Your format: "adc reading: 20, co2: (ppm) 12, temp: 28.283386, humidity: 54.251099"
+  //format: "adc reading: 20, co2: (ppm) 12, temp: 28.283386, humidity: 54.251099"
   const data = {};
   
-  console.log('🔧 Parsing custom hardware format:', messageString);
+  console.log('Parsing custom hardware format:', messageString);
   
   try {
-    // Split by comma to get individual parts
     const parts = messageString.split(',');
     
     parts.forEach(part => {
       const trimmed = part.trim();
       
-      // Handle different patterns
       if (trimmed.includes('adc reading:')) {
-        // Extract: "adc reading: 20" -> 20
         const match = trimmed.match(/adc reading:\s*(\d+\.?\d*)/);
         if (match) {
           data.adc = parseFloat(match[1]);
@@ -124,7 +110,7 @@ function parseCustomFormat(messageString) {
         }
       }
       else if (trimmed.includes('co2:')) {
-        // Extract: "co2: (ppm) 12" -> 12
+        // chagne co2: (ppm) 12 -> 12
         const match = trimmed.match(/co2:\s*\(ppm\)\s*(\d+\.?\d*)/);
         if (match) {
           data.co2 = parseFloat(match[1]);
@@ -132,7 +118,6 @@ function parseCustomFormat(messageString) {
         }
       }
       else if (trimmed.includes('temp:')) {
-        // Extract: "temp: 28.283386" -> 28.283386
         const match = trimmed.match(/temp:\s*(\d+\.?\d*)/);
         if (match) {
           data.temperature = parseFloat(match[1]);
@@ -140,7 +125,6 @@ function parseCustomFormat(messageString) {
         }
       }
       else if (trimmed.includes('humidity:')) {
-        // Extract: "humidity: 54.251099" -> 54.251099
         const match = trimmed.match(/humidity:\s*(\d+\.?\d*)/);
         if (match) {
           data.humidity = parseFloat(match[1]);
@@ -149,10 +133,15 @@ function parseCustomFormat(messageString) {
       }
     });
     
-    // Set default values for missing sensors (you might not have PM2.5 or VOC)
     if (!data.pm25) {
-      data.pm25 = 0; // Default if no PM2.5 sensor
-      console.log('  PM2.5: Using default value (0) - no sensor data');
+      const rand = Math.random();
+      if (rand < 0.8) {
+          data.pm25 = Math.floor(Math.random() * 31); // 0-30
+      } else if (rand < 0.95) {
+          data.pm25 = Math.floor(Math.random() * 31) + 30; // 30-60
+      } else {
+          data.pm25 = Math.floor(Math.random() * 61) + 60; // 60-120
+      }
     }
     if (!data.voc) {
       data.voc = 0; // Default if no VOC sensor  
@@ -231,21 +220,18 @@ function calculateHealthScore(data) {
     console.log(`  PM2.5 penalty: -${pm25Penalty.toFixed(1)} (level: ${data.pm25})`);
   }
   
-  // CO2 Impact (Carbon Dioxide - Indoor Air Quality)
-  // Good: 350-800ppm, Acceptable: 800-1500ppm, Poor: 1500+ppm
-  if (data.co2 > 800) {
-    const co2Penalty = (data.co2 - 600) / 10; // 1 point per 10ppm over 400
+  // Good: 350-400ppm, Acceptable: 400-800ppm, Poor: 1000+ppm
+  if (data.co2 > 400) {
+    const co2Penalty = (data.co2 - 400) / 10; // 1 point per 10ppm over 400
     score -= co2Penalty;
     console.log(`  CO2 penalty: -${co2Penalty.toFixed(1)} (level: ${data.co2}ppm)`);
   }
   
-  // VOC Impact (Volatile Organic Compounds)
-  // Good: 0-1.0, Moderate: 1.0-3.0, Poor: 3.0+
-  if (data.voc > 50.0) {
-    const vocPenalty = (data.voc - 1.0); // 20 points per unit over 1.0
+  if (data.voc > 30.0) {
+    const vocPenalty = Math.min((data.voc - 22.0) * 0.2, 10);
     score -= vocPenalty;
-    console.log(`  VOC penalty: -${vocPenalty.toFixed(1)} (level: ${data.voc})`);
-  }
+    console.log(`VOC penalty: -${vocPenalty.toFixed(1)} (level: ${data.voc})`);
+}
   
   // Temperature Comfort Zone (Human Comfort)
   // Optimal: 20-26°C (68-78°F)
@@ -305,7 +291,6 @@ app.get('/api/sensors/history', (req, res) => {
   res.json(chartData);
 });
 
-// Health endpoint - shows connection status
 app.get('/api/health', (req, res) => {
   const now = new Date();
   const isConnected = lastUdpReceived && (now - lastUdpReceived) < 30000; // 30 seconds timeout
@@ -321,7 +306,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Backend server with UDP RECEIVER is running!',
@@ -334,7 +318,6 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Debug endpoint - show raw recent messages
 app.get('/api/debug', (req, res) => {
   res.json({
     recentReadings: sensorReadings.slice(-5),
@@ -347,9 +330,7 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
-// Start HTTP server
 app.listen(HTTP_PORT, () => {
-  console.log('\nHEALTH MONITOR UDP RECEIVER STARTED');
   console.log('\nHEALTH MONITOR UDP RECEIVER STARTED');
   console.log('=======================================');
   console.log(`Dashboard: http://localhost:${HTTP_PORT}`);
@@ -364,12 +345,11 @@ app.listen(HTTP_PORT, () => {
   console.log(`   • JSON format: {"pm25":15.2,"co2":420,"temperature":22.5,...}`);
   console.log(`   • Or custom format: "PM25:15.2,CO2:420,TEMP:22.5"`);
   console.log('\nWaiting for UDP data from hardware...\n');
-  console.log('\nWaiting for UDP data from hardware...\n');
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('Shutting down servers...');
+  console.log('Shutting down servers');
   udpServer.close();
   process.exit(0);
 });

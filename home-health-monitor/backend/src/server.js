@@ -35,7 +35,7 @@ udpServer.on('message', (message, remote) => {
     try {
       // First try JSON parsing
       data = JSON.parse(message.toString());
-      console.log('📦 Parsed as JSON');
+      console.log('Parsed as JSON');
     } catch (parseError) {
       // If not JSON, try to parse other formats
       console.log('Message is not JSON, attempting other parsing...');
@@ -105,7 +105,7 @@ function parseCustomFormat(messageString) {
   // Your format: "adc reading: 20, co2: (ppm) 12, temp: 28.283386, humidity: 54.251099"
   const data = {};
   
-  console.log('🔧 Parsing custom hardware format:', messageString);
+  console.log('Parsing custom hardware format:', messageString);
   
   try {
     // Split by comma to get individual parts
@@ -214,7 +214,7 @@ udpServer.bind(UDP_PORT, UDP_HOST);
 function calculateHealthScore(data) {
   let score = 100; // Start with perfect score
   
-  console.log('🧮 Calculating health score for:', {
+  console.log('Calculating health score for:', {
     pm25: data.pm25,
     co2: data.co2,
     voc: data.voc,

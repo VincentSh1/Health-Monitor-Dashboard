@@ -389,8 +389,39 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
     return { level: 'Hazardous', color: 'text-red-500' };
   };
 
+  const getCO2Level = (co2) => {
+    if (co2 <= 800) return { level: 'Good', color: 'text-green-500' };
+    if (co2 <= 1500) return { level: 'Acceptable', color: 'text-yellow-500' };
+    return { level: 'Poor', color: 'text-red-500' };
+  };
+
+  const getVOCLevel = (voc) => {
+    if (voc <= 1.0) return { level: 'Good', color: 'text-green-500' };
+    if (voc <= 3.0) return { level: 'Moderate', color: 'text-yellow-500' };
+    return { level: 'Poor', color: 'text-red-500' };
+  };
+
+  const getTemperatureLevel = (temp) => {
+    if (temp >= 20 && temp <= 26) return { level: 'Optimal', color: 'text-green-500' };
+    if ((temp >= 18 && temp < 20) || (temp > 26 && temp <= 28)) return { level: 'Acceptable', color: 'text-yellow-500' };
+    return { level: 'Uncomfortable', color: 'text-red-500' };
+  };
+
+  const getHumidityLevel = (humidity) => {
+    if (humidity >= 40 && humidity <= 60) return { level: 'Optimal', color: 'text-green-500' };
+    if ((humidity >= 30 && humidity < 40) || (humidity > 60 && humidity <= 70)) return { level: 'Acceptable', color: 'text-yellow-500' };
+    return { level: 'Poor', color: 'text-red-500' };
+  };
+
+
+  
+
   const healthStatus = getHealthStatus(sensorData.healthScore);
   const airQuality = getAirQualityLevel(sensorData.pm25);
+  const co2Level = getCO2Level(sensorData.co2);
+  const vocLevel = getVOCLevel(sensorData.voc);
+  const temperatureLevel = getTemperatureLevel(sensorData.temperature);
+  const humidityLevel = getHumidityLevel(sensorData.humidity);
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -888,6 +919,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
                 title="CO₂ Level"
                 value={Math.round(sensorData.co2)}
                 unit="ppm"
+                status={co2Level}
                 description="Carbon dioxide concentration"
               />
               <SensorCard
@@ -895,6 +927,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
                 title="VOC Index"
                 value={sensorData.voc.toFixed(2)}
                 unit="index"
+                status={vocLevel}
                 description="Volatile organic compounds"
               />
               <SensorCard
@@ -902,6 +935,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
                 title="Temperature"
                 value={sensorData.temperature.toFixed(1)}
                 unit="°C"
+                status={temperatureLevel}
                 description="Ambient temperature"
               />
               <SensorCard
@@ -909,6 +943,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
                 title="Humidity"
                 value={Math.round(sensorData.humidity)}
                 unit="%"
+                status={humidityLevel}
                 description="Relative humidity level"
               />
               

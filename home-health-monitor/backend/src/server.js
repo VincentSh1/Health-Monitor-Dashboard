@@ -203,7 +203,7 @@ udpServer.bind(UDP_PORT, UDP_HOST);
 function calculateHealthScore(data) {
   let score = 100; // Start with perfect score
   
-  console.log('🧮 Calculating health score for:', {
+  console.log('Calculating health score for:', {
     pm25: data.pm25,
     co2: data.co2,
     voc: data.voc,

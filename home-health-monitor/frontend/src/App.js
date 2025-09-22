@@ -207,7 +207,7 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
   const [sensorData, setSensorData] = useState({
     pm25: 12,
     co2: 420,
-    voc: 0.8,
+    voc: 100,
     temperature: 22.5,
     humidity: 45,
     healthScore: 82
@@ -396,8 +396,8 @@ const HomeHealthMonitor = ({ user, onLogout }) => {
   };
 
   const getVOCLevel = (voc) => {
-    if (voc <= 1.0) return { level: 'Good', color: 'text-green-500' };
-    if (voc <= 3.0) return { level: 'Moderate', color: 'text-yellow-500' };
+    if (voc <= 30.0) return { level: 'Good', color: 'text-green-500' };
+    if (voc <= 50.0) return { level: 'Moderate', color: 'text-yellow-500' };
     return { level: 'Poor', color: 'text-red-500' };
   };
 

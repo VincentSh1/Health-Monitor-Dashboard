@@ -211,44 +211,40 @@ function calculateHealthScore(data) {
     humidity: data.humidity
   });
   
-  // PM2.5 Air Quality Impact (Fine Particulate Matter)
-  // WHO guideline: 15 μg/m³ annual, 45 μg/m³ 24-hour
-  // Good: 0-12, Moderate: 12.1-35.4, Unhealthy: 35.5+
-  if (data.pm25 > 12) {
-    const pm25Penalty = (data.pm25 - 12) * 2; // 2 points per μg/m³ over 12
+  if (data.pm25 > 50) {
+    const pm25Penalty = (data.pm25 - 50) * 0.1; // Very gentle: 0.1 points per unit over 50
     score -= pm25Penalty;
     console.log(`  PM2.5 penalty: -${pm25Penalty.toFixed(1)} (level: ${data.pm25})`);
   }
   
-  // Good: 350-400ppm, Acceptable: 400-800ppm, Poor: 1000+ppm
-  if (data.co2 > 400) {
-    const co2Penalty = (data.co2 - 400) / 10; // 1 point per 10ppm over 400
+  // CO2 - 1200 is still acceptable indoors
+  if (data.co2 > 1000) {
+    const co2Penalty = (data.co2 - 1000) / 100; // 1 point per 100ppm over 1200
     score -= co2Penalty;
     console.log(`  CO2 penalty: -${co2Penalty.toFixed(1)} (level: ${data.co2}ppm)`);
   }
   
-  if (data.voc > 30.0) {
-    const vocPenalty = Math.min((data.voc - 22.0) * 0.2, 10);
+  // VOC - Only bad at 100+
+  if (data.voc > 50.0) {
+    const vocPenalty = Math.min((data.voc - 50.0) * 0.1);
     score -= vocPenalty;
-    console.log(`VOC penalty: -${vocPenalty.toFixed(1)} (level: ${data.voc})`);
-}
+    console.log(`  VOC penalty: -${vocPenalty.toFixed(1)} (level: ${data.voc})`);
+  }
   
   // Temperature Comfort Zone (Human Comfort)
   // Optimal: 20-26°C (68-78°F)
-  const optimalTemp = 23; // 23°C is ideal
-  if (data.temperature < 20 || data.temperature > 26) {
-    const tempPenalty = Math.abs(data.temperature - optimalTemp) * 3; // 3 points per degree from optimal
+  if (data.temperature < 15 || data.temperature > 30) {
+    const tempPenalty = Math.abs(data.temperature < 15 ? 15 - data.temperature : data.temperature - 30) * 1; // 1 point per degree outside 15-30°C
     score -= tempPenalty;
-    console.log(`  Temperature penalty: -${tempPenalty.toFixed(1)} (${data.temperature}°C, optimal: ${optimalTemp}°C)`);
+    console.log(`  Temperature penalty: -${tempPenalty.toFixed(1)} (${data.temperature}°C)`);
   }
   
   // Humidity Comfort Zone (Human Comfort & Health)
   // Optimal: 40-60% (prevents mold growth and respiratory issues)
-  const optimalHumidity = 50; // 50% is ideal
-  if (data.humidity < 40 || data.humidity > 60) {
-    const humidityPenalty = Math.abs(data.humidity - optimalHumidity) / 2; // 0.5 points per % from optimal range
+  if (data.humidity < 30 || data.humidity > 70) {
+    const humidityPenalty = Math.abs(data.humidity < 30 ? 30 - data.humidity : data.humidity - 70) * 0.2; // 0.2 points per % outside 30-70%
     score -= humidityPenalty;
-    console.log(`  Humidity penalty: -${humidityPenalty.toFixed(1)} (${data.humidity}%, optimal: 40-60%)`);
+    console.log(`  Humidity penalty: -${humidityPenalty.toFixed(1)} (${data.humidity}%)`);
   }
   
   // Ensure score stays within 0-100 range
